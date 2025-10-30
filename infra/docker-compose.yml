@@ -1,0 +1,27 @@
+
+version: "3.9"
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: activitydb
+    ports:
+      - "5432:5432"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+  server:
+    build: ../server
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/activitydb?schema=public
+      JWT_SECRET: replace_me_with_a_long_random_secret
+      CORS_ORIGIN: http://localhost:19006
+      PORT: 8080
+    ports:
+      - "8080:8080"
+    command: sh -c "npx prisma migrate deploy && node dist/index.js"
+volumes:
+  dbdata:
